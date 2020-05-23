@@ -20,7 +20,6 @@ def snipeKLWine(list: white_list):
     for row in rows:
         tmp = Whiskey()
         columns = row.find_all("td")
-        tmp.date =
 
 
 
