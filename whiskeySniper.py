@@ -2,27 +2,7 @@ import requests
 import MySQLdb
 import datetime
 from bs4 import BeautifulSoup
-
-
-class Whiskey(object):
-    def __init__(self, date="", sku=0, name="", allocated=False, quantity=0, price="0.00"):
-        self.date = date
-        self.sku = sku
-        self.name = name
-        self.allocated = allocated
-        self.price = price
-        self.quantity = quantity
-
-    def __str__(self):
-        return "Date: {date}, SKU: {sku}, Name: {name}, Allocated: {allocated}, Price: {price}, Quantity: {quantity}".format(
-            date=self.date,
-            sku=self.sku,
-            name=self.name,
-            allocated=self.allocated,
-            price=self.price,
-            quantity=self.quantity
-        )
-
+from Whiskey import Whiskey
 
 def snipeKLWine():
     # Bourbon new feed
@@ -30,7 +10,7 @@ def snipeKLWine():
                      "-all!206!4&limit=50&offset=0&orderBy=60%20asc,NewProductFeedDate%20desc&searchText=")
     bourbon_feed = BeautifulSoup(r.text, 'html.parser')
     rows = bourbon_feed.find("table", {"class": "table table-striped table-hover"}).find("tbody").find_all("tr")
-    whiskeys = []
+    whiskeys = set()
     for row in rows:
         tmp = Whiskey()
         columns = row.find_all("td")
@@ -41,8 +21,9 @@ def snipeKLWine():
         tmp.allocated = 1 if row.find("span") else 0
         tmp.price = columns[4].text
         tmp.quantity = 0 if columns[5].text == "Sold Out" else columns[5].text
-        whiskeys.append(tmp)
+        whiskeys.add(tmp)
 
+    # Bourbon new/back in stock
     r = requests.get("https://klwines.com/Products?&filters=sv2_90$eq$1$True$ff-90-1--$!206!4&limit=50&offset=0"
                      "&orderBy=60%20asc,search.score()%20desc&searchText=")
     bourbon_feed = BeautifulSoup(r.text, 'html.parser')
@@ -57,7 +38,7 @@ def snipeKLWine():
         tmp.allocated = (1 if row.find("div", {"class": "tf-product-addon"}).find("div", {
             "class": "global-serif global-pop-color allocation"}) else 0)
         tmp.quantity = 0
-        whiskeys.append(tmp)
+        whiskeys.add(tmp)
 
     return whiskeys
 

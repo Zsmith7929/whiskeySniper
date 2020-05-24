@@ -1,17 +1,20 @@
 #Whiskey Database Connector
 import MySQLdb
 import datetime
+from Whiskey import Whiskey
 import pickle
 
 class DBC(object):
     def __init__(self):
-        self.db = MySQLdb.connect(host="smith7929.mysql.pythonanywhere-services.com",
-                         user="smith7929",
-                         passwd="I@mthe1whoknocks",
-                         db="smith7929$whiskey")
+        # load pickled credentials
+        creds = pickle.load(open("k.p", "rb"))
+        self.db = MySQLdb.connect(host=creds["host"],
+                         user=creds["user"],
+                         passwd=creds["passwd"],
+                         db=creds["db"])
         self.cursor = db.cursor()
 
-    def putWhiskey(self, w):
+    def putWhiskey(self, w: Whiskey):
         return self.cursor.execute("INSERT INTO whiskey (sku, name, price, quantity, allocation, date) VALUES ({sku}, {name}, {price}, {quantity}, {allocation}, {date}) ON DUPLICATE KEY UPDATE date={newDate}".format(
             sku=w.sku,
             name=w.name,
@@ -24,7 +27,6 @@ class DBC(object):
 
     def commit(self):
         self.db.commit()
-
 
 
 if __name__ == "__main__":
